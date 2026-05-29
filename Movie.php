@@ -350,5 +350,16 @@ class Movie
         while ($row = mysqli_fetch_assoc($res)) { $rows[] = $row; }
         return $rows;
     }
+    
+     // all categories (for add/edit dropdown)
+    public static function listCategories()
+    {
+        $dbc = getConnection();
+        $res = mysqli_query($dbc,
+            "SELECT category_id, name FROM dbProj_categories ORDER BY name");
+        $rows = array();
+        while ($row = mysqli_fetch_assoc($res)) { $rows[] = $row; }
+        return $rows;
+    }
 }
 ?>
