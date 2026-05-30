@@ -200,6 +200,58 @@ class Movie
         return $cnt;
     }
 
+    // ---------- getUserRating(): the logged-in user's stars for this movie (or null) ----------
+    public function getUserRating($userId)
+    {
+        $dbc = getConnection();
+        $stmt = mysqli_prepare($dbc,
+            "SELECT stars FROM dbProj_ratings WHERE movie_id = ? AND user_id = ?");
+        mysqli_stmt_bind_param($stmt, "ii", $this->movie_id, $userId);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_bind_result($stmt, $stars);
+        $found = mysqli_stmt_fetch($stmt);
+        mysqli_stmt_close($stmt);
+        return $found ? (int)$stars : null;
+    }
+
+    // ---------- upsertRating(): INSERT or UPDATE a user's rating (UNIQUE on movie+user) ----------
+    public function upsertRating($userId, $stars)
+    {
+        $dbc = getConnection();
+        $stmt = mysqli_prepare($dbc,
+            "INSERT INTO dbProj_ratings (movie_id, user_id, stars)
+             VALUES (?, ?, ?)
+             ON DUPLICATE KEY UPDATE stars = VALUES(stars)");
+        mysqli_stmt_bind_param($stmt, "iii", $this->movie_id, $userId, $stars);
+        $ok = mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        return $ok;
+    }
+
+    // ---------- insertComment(): add a new comment ----------
+    public function insertComment($userId, $body)
+    {
+        $dbc = getConnection();
+        $stmt = mysqli_prepare($dbc,
+            "INSERT INTO dbProj_comments (movie_id, user_id, body) VALUES (?, ?, ?)");
+        mysqli_stmt_bind_param($stmt, "iis", $this->movie_id, $userId, $body);
+        $ok = mysqli_stmt_execute($stmt);
+        $newId = $ok ? mysqli_insert_id($dbc) : 0;
+        mysqli_stmt_close($stmt);
+        return $newId;
+    }
+
+    // ---------- deleteComment(): remove a comment (static, admin use) ----------
+    public static function deleteComment($commentId)
+    {
+        $dbc = getConnection();
+        $stmt = mysqli_prepare($dbc, "DELETE FROM dbProj_comments WHERE comment_id = ?");
+        mysqli_stmt_bind_param($stmt, "i", $commentId);
+        $ok = mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        return $ok;
+    }
+
     // =================================================================
     // List / search helpers (return arrays of associative rows)
     // =================================================================
