@@ -24,7 +24,7 @@ $poster = $movie->getPosterImage() ? $movie->getPosterImage() : 'placeholder.jpg
 $dbc  = getConnection();
 $cid  = $movie->getMovieId();
 $cstmt = mysqli_prepare($dbc,
-    "SELECT c.body, c.created_at, u.username
+    "SELECT c.comment_id, c.body, c.created_at, u.username
      FROM dbProj_comments c
      LEFT JOIN dbProj_users u ON u.user_id = c.user_id
      WHERE c.movie_id = ?
@@ -35,6 +35,9 @@ $cres = mysqli_stmt_get_result($cstmt);
 $comments = array();
 while ($row = mysqli_fetch_assoc($cres)) { $comments[] = $row; }
 mysqli_stmt_close($cstmt);
+
+$isAdmin = (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
+$userRating = isset($_SESSION['uid']) ? $movie->getUserRating($_SESSION['uid']) : null;
 
 include_once(__DIR__ . "/header.php");
 ?>
@@ -58,23 +61,186 @@ include_once(__DIR__ . "/header.php");
     </div>
 </div>
 
-<h2>Comments</h2>
+<h2>Rate &amp; Comment</h2>
+
 <?php if (isset($_SESSION['uid'])): ?>
-    <p class="muted">Logged in as <?php echo htmlentities($_SESSION['username']); ?> — commenting & rating will be wired up next (AJAX).</p>
+    <p class="muted">Logged in as <strong><?php echo htmlentities($_SESSION['username']); ?></strong></p>
+
+    <!-- star rating widget -->
+    <div style="margin-bottom:16px;">
+        <span style="color:var(--muted); font-size:.9rem;">Your rating: </span>
+        <span class="stars" id="ratingStars" data-movie="<?php echo $cid; ?>">
+            <?php for ($i = 1; $i <= 5; $i++): ?>
+                <span class="star<?php echo ($userRating && $i <= $userRating) ? ' on' : ''; ?>"
+                      data-val="<?php echo $i; ?>">&#9733;</span>
+            <?php endfor; ?>
+        </span>
+        <span id="ratingMsg" style="font-size:.85rem; margin-left:8px; color:var(--ok);"></span>
+    </div>
+
+    <!-- comment form -->
+    <div style="margin-bottom:20px;">
+        <textarea id="commentBody" rows="3" placeholder="Write your comment..." maxlength="1000"></textarea>
+        <div style="margin-top:6px; display:flex; align-items:center; gap:10px;">
+            <button id="submitComment" class="btn" data-movie="<?php echo $cid; ?>">Post Comment</button>
+            <span id="commentMsg" style="font-size:.85rem; color:var(--ok);"></span>
+        </div>
+    </div>
 <?php else: ?>
-    <p class="muted"><a href="<?php echo BASE_URL; ?>/auth/login.php">Log in</a> to add a comment or rating.</p>
+    <p class="muted"><a href="<?php echo BASE_URL; ?>/auth/login.php">Log in</a> to rate or comment.</p>
 <?php endif; ?>
 
+<h2>Comments</h2>
+<div id="commentsList">
 <?php if (empty($comments)): ?>
-    <p>No comments yet.</p>
+    <p id="noComments">No comments yet. Be the first!</p>
 <?php else: ?>
     <?php foreach ($comments as $c): ?>
-        <div class="comment">
+        <div class="comment" data-id="<?php echo (int)$c['comment_id']; ?>">
             <p class="who"><?php echo htmlentities($c['username']); ?>
-               <span class="when"><?php echo htmlentities($c['created_at']); ?></span></p>
+               <span class="when"><?php echo htmlentities($c['created_at']); ?></span>
+               <?php if ($isAdmin): ?>
+                   <button class="btn-delete-comment" data-id="<?php echo (int)$c['comment_id']; ?>"
+                           style="float:right; background:var(--accent-2); color:#fff; border:none;
+                                  border-radius:4px; padding:2px 8px; cursor:pointer; font-size:.75rem;">Delete</button>
+               <?php endif; ?>
+            </p>
             <p><?php echo htmlentities($c['body']); ?></p>
         </div>
     <?php endforeach; ?>
 <?php endif; ?>
+</div>
+
+<script>
+var ajaxUrl = "<?php echo BASE_URL; ?>/ajax/comment_rating.php";
+
+// ----- Star rating -----
+(function(){
+    var stars = document.querySelectorAll('#ratingStars .star');
+    var msgEl = document.getElementById('ratingMsg');
+    var rated = false;
+    stars.forEach(function(s){
+        s.addEventListener('mouseenter', function(){
+            if (rated) return;
+            var v = parseInt(this.getAttribute('data-val'));
+            stars.forEach(function(ss, i){ ss.classList.toggle('on', i < v); });
+        });
+        s.addEventListener('click', function(){
+            var v = parseInt(this.getAttribute('data-val'));
+            rated = true;
+            msgEl.textContent = 'Saving...';
+            msgEl.style.color = '';
+            var fd = new FormData();
+            fd.append('action', 'rate');
+            fd.append('movie_id', document.getElementById('ratingStars').getAttribute('data-movie'));
+            fd.append('stars', v);
+            fetch(ajaxUrl, { method:'POST', body: fd })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                if (d.ok) {
+                    msgEl.textContent = 'Rated ' + v + '/5';
+                    msgEl.style.color = 'var(--ok)';
+                    document.querySelector('.meta').innerHTML =
+                        '&#11088; ' + parseFloat(d.avg).toFixed(1) + ' (' + d.count + ' ratings)' +
+                        ' &middot; ' + document.querySelector('.meta').innerHTML.split('·')[1];
+                    stars.forEach(function(ss, i){ ss.classList.toggle('on', i < d.myStars); });
+                } else {
+                    msgEl.textContent = d.msg;
+                    msgEl.style.color = 'var(--accent-2)';
+                    rated = false;
+                }
+            });
+        });
+    });
+    document.getElementById('ratingStars').addEventListener('mouseleave', function(){
+        if (rated) return;
+        var cur = <?php echo $userRating ? $userRating : 0; ?>;
+        stars.forEach(function(ss, i){ ss.classList.toggle('on', i < cur); });
+    });
+})();
+
+// ----- Comment submit -----
+(function(){
+    var btn = document.getElementById('submitComment');
+    if (!btn) return;
+    var textarea = document.getElementById('commentBody');
+    var msgEl = document.getElementById('commentMsg');
+    btn.addEventListener('click', function(){
+        var body = textarea.value.trim();
+        if (body === '') {
+            msgEl.textContent = 'Comment cannot be empty.';
+            msgEl.style.color = 'var(--accent-2)';
+            return;
+        }
+        btn.disabled = true;
+        msgEl.textContent = 'Posting...';
+        msgEl.style.color = '';
+        var fd = new FormData();
+        fd.append('action', 'comment');
+        fd.append('movie_id', btn.getAttribute('data-movie'));
+        fd.append('body', body);
+        fetch(ajaxUrl, { method:'POST', body: fd })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if (d.ok) {
+                textarea.value = '';
+                msgEl.textContent = '';
+                var delBtn = d.isAdmin
+                    ? '<button class="btn-delete-comment" data-id="'+d.id+'" style="float:right; background:var(--accent-2); color:#fff; border:none; border-radius:4px; padding:2px 8px; cursor:pointer; font-size:.75rem;">Delete</button>'
+                    : '';
+                var html = '<div class="comment" data-id="'+d.id+'">'
+                    + '<p class="who">' + escapeHTML(d.username) + ' <span class="when">' + d.created + '</span>' + delBtn + '</p>'
+                    + '<p>' + escapeHTML(d.body) + '</p></div>';
+                var noEl = document.getElementById('noComments');
+                if (noEl) noEl.remove();
+                var list = document.getElementById('commentsList');
+                list.insertAdjacentHTML('afterbegin', html);
+                bindDelete(list.firstElementChild.querySelector('.btn-delete-comment'));
+            } else {
+                msgEl.textContent = d.msg;
+                msgEl.style.color = 'var(--accent-2)';
+            }
+            btn.disabled = false;
+        })
+        .catch(function(){
+            msgEl.textContent = 'Network error.';
+            msgEl.style.color = 'var(--accent-2)';
+            btn.disabled = false;
+        });
+    });
+})();
+
+// ----- Comment delete (admin) -----
+function bindDelete(btn){
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+        if (!confirm('Delete this comment?')) return;
+        var id = this.getAttribute('data-id');
+        var fd = new FormData();
+        fd.append('action', 'delete');
+        fd.append('comment_id', id);
+        fetch(ajaxUrl, { method:'POST', body: fd })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if (d.ok) {
+                var el = document.querySelector('.comment[data-id="'+id+'"]');
+                if (el) el.remove();
+                if (document.querySelectorAll('#commentsList .comment').length === 0) {
+                    document.getElementById('commentsList').innerHTML = '<p id="noComments">No comments yet.</p>';
+                }
+            } else {
+                alert(d.msg);
+            }
+        });
+    });
+}
+document.querySelectorAll('.btn-delete-comment').forEach(function(b){ bindDelete(b); });
+
+function escapeHTML(str){
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+</script>
 
 <?php include_once(__DIR__ . "/footer.php"); ?>
