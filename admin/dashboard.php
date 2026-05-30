@@ -14,6 +14,7 @@ include_once(__DIR__ . "/../header.php");
     <a class="btn" href="users.php">👤 Manage Users</a>
     <a class="btn" href="movies.php">🎬 Manage Movies</a>
     <a class="btn" href="reviews.php">💬 Manage Reviews</a>
+    <a class="btn" href="reports.php">📝 Generate Reports</a>
 </div>
 
 <?php include_once(__DIR__ . "/../footer.php"); ?>

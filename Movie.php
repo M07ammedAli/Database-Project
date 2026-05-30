@@ -237,6 +237,29 @@ class Movie
         mysqli_stmt_close($stmt);
         return $rows;
     }
+    
+    // ---------- listMostPopular(): admin panel (list movies based on view count)
+    public static function listMostPopular($dateFrom ='', $dateTo='')
+    {
+        $dbc = getConnection();
+        $stmt = mysqli_prepare($dbc,
+                "SELECT m.title, m.view_count, m.release_date, u.username AS Creator
+                 FROM dbProj_movies m JOIN dbProj_users u ON m.creator_id = u.user_id
+                 WHERE m.status = 'published' AND m.release_date BETWEEN ? AND ?
+                 ORDER BY m.view_count DESC");
+        mysqli_stmt_bind_param($stmt, 'ss', $dateFrom, $dateTo);
+        mysqli_stmt_execute($stmt);
+        $res = mysqli_stmt_get_result($stmt);
+        $rows = array();
+        
+        while($row = mysqli_fetch_assoc($res))
+        {
+            $rows[] = $row;
+        }
+        
+        mysqli_stmt_close($stmt);
+        return $rows;
+    }
 
     // ---------- listByCreator(): creator panel (all statuses) ----------
     public static function listByCreator($creatorId)
