@@ -11,11 +11,6 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 define('BASE_URL', '/~u202304108/MovieReview');
 
-// Adjust this to your deployed project root (no trailing slash needed inside links).
-// Example on uni server: "/u123456789/movie" — change to match your URL.
-if (!defined('BASE_URL')) {
-    define('BASE_URL', '/~u202304108//movie');   // <-- set to your project root path
-}
 
 $role     = isset($_SESSION['role'])     ? $_SESSION['role']     : null;
 $username = isset($_SESSION['username'])  ? $_SESSION['username'] : null;

@@ -4,9 +4,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Show errors for debugging
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);   // keep off for submission; flip to 1 only while debugging
 
 require_once(__DIR__ . "/../DBconn.php");
 require_once(__DIR__ . "/../auth_guard.php");
@@ -21,31 +20,35 @@ if (isset($_POST['update_movie'])) {
                             SET title=?, category_id=?, release_date=?, status=? 
                             WHERE movie_id=?");
     if (!$stmt) {
-        die("Prepare failed: " . $conn->error);
+        die("Could not process your request. Please try again or contact the administrator.");
     }
 
-    $stmt->bind_param("sissi", 
-        $_POST['title'], 
-        $_POST['category_id'], 
-        $_POST['release_date'], 
-        $_POST['status'], 
+    $stmt->bind_param("sissi",
+        $_POST['title'],
+        $_POST['category_id'],
+        $_POST['release_date'],
+        $_POST['status'],
         $_POST['movie_id']
     );
 
     if (!$stmt->execute()) {
-        die("Update failed: " . $stmt->error);
+        die("Could not update the movie. Please try again or contact the administrator.");
     }
 
     $_SESSION['msg'] = "Movie updated successfully.";
-    header("Location: /~u202204564/MovieReview/admin/movies.php");
+    header("Location: " . BASE_URL . "/admin/movies.php");
     exit;
 }
 
 // Fetch movie by ID
 if (!isset($_GET['id'])) { die("Movie ID missing."); }
 $movie_id = intval($_GET['id']);
+
 $stmt = $conn->prepare("SELECT movie_id, title, category_id, release_date, status 
                         FROM dbProj_movies WHERE movie_id=?");
+if (!$stmt) {
+    die("Could not process your request. Please try again or contact the administrator.");
+}
 $stmt->bind_param("i", $movie_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -61,7 +64,7 @@ include_once(__DIR__ . "/../header.php");
 
 <h1 class="page-title">Edit Movie</h1>
 <form method="post" class="styled-form">
-    <input type="hidden" name="movie_id" value="<?= $movie['movie_id'] ?>">
+    <input type="hidden" name="movie_id" value="<?= (int)$movie['movie_id'] ?>">
 
     <label>Title</label>
     <input type="text" name="title" value="<?= htmlentities($movie['title']) ?>" required>
@@ -69,7 +72,7 @@ include_once(__DIR__ . "/../header.php");
     <label>Category</label>
     <select name="category_id" required>
         <?php while($cat = $categories->fetch_assoc()): ?>
-            <option value="<?= $cat['category_id'] ?>" 
+            <option value="<?= (int)$cat['category_id'] ?>" 
                 <?= $cat['category_id'] == $movie['category_id'] ? 'selected' : '' ?>>
                 <?= htmlentities($cat['name']) ?>
             </option>
@@ -77,7 +80,7 @@ include_once(__DIR__ . "/../header.php");
     </select>
 
     <label>Release Date</label>
-    <input type="date" name="release_date" value="<?= $movie['release_date'] ?>" required>
+    <input type="date" name="release_date" value="<?= htmlentities($movie['release_date']) ?>" required>
 
     <label>Status</label>
     <select name="status" required>

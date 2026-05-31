@@ -49,7 +49,7 @@ if ($action === 'comment') {
         echo json_encode(['ok' => false, 'msg' => 'Movie not found.']);
         exit();
     }
-    $cleanBody = htmlentities(strip_tags($body));
+    $cleanBody = strip_tags($body);
     $commentId = $movie->insertComment($_SESSION['uid'], $cleanBody);
     if ($commentId) {
         echo json_encode([

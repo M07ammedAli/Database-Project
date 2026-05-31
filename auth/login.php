@@ -1,9 +1,9 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 include_once("LoginClass.php");
-
 $error = "";
-
 if (isset($_POST['submitted'])) {
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
@@ -20,34 +20,44 @@ if (isset($_POST['submitted'])) {
         }
     }
 }
+
+// Shared header (starts the session, defines BASE_URL, prints nav + <main class="page">)
+include_once(__DIR__ . "/../header.php");
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login</title>
-    <link rel="stylesheet" href="../css/style.css">
-</head>
-<body>
+
+<div class="card">
     <h1>Login</h1>
-    <?php if ($error) echo "<p style='color:red;'>$error</p>"; ?>
+
+    <?php if ($error): ?>
+        <div class="alert alert-danger"><?php echo htmlentities($error); ?></div>
+    <?php endif; ?>
+
     <form method="post" action="" onsubmit="return validateLogin();">
-        <p>Username: <input type="text" name="username" id="username"></p>
-        <p>Password: <input type="password" name="password" id="password"></p>
+        <p>
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username">
+        </p>
+        <p>
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password">
+        </p>
         <p><input type="submit" value="Login"></p>
         <input type="hidden" name="submitted" value="TRUE">
     </form>
-    <p>No account? <a href="register.php">Register here</a></p>
 
-    <script>
-    function validateLogin() {
-        var u = document.getElementById("username").value.trim();
-        var p = document.getElementById("password").value.trim();
-        if (u === "" || p === "") {
-            alert("Please enter username and password.");
-            return false;
-        }
-        return true;
+    <p class="muted">No account? <a href="<?php echo BASE_URL; ?>/auth/register.php">Register here</a></p>
+</div>
+
+<script>
+function validateLogin() {
+    var u = document.getElementById("username").value.trim();
+    var p = document.getElementById("password").value.trim();
+    if (u === "" || p === "") {
+        alert("Please enter username and password.");
+        return false;
     }
-    </script>
-</body>
-</html>
+    return true;
+}
+</script>
+
+<?php include_once(__DIR__ . "/../footer.php"); ?>

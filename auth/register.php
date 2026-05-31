@@ -1,5 +1,4 @@
 <?php
-session_start();
 include_once("Users.php");
 
 $error = "";
@@ -33,51 +32,64 @@ if (isset($_POST['submitted'])) {
         }
     }
 }
+
+// Shared header (starts the session, defines BASE_URL, prints nav + <main class="page">)
+include_once(__DIR__ . "/../header.php");
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Register</title>
-    <link rel="stylesheet" href="../css/style.css">
-</head>
-<body>
+
+<div class="card">
     <h1>Register</h1>
-    <?php
-      if ($error)   echo "<p style='color:red;'>$error</p>";
-      if ($success) echo "<p style='color:green;'>$success</p>";
-    ?>
+
+    <?php if ($error): ?>
+        <div class="alert alert-danger"><?php echo htmlentities($error); ?></div>
+    <?php endif; ?>
+    <?php if ($success): ?>
+        <div class="alert alert-success"><?php echo htmlentities($success); ?></div>
+    <?php endif; ?>
+
     <form method="post" action="" onsubmit="return validateForm();">
-        <p>Username: <input type="text" name="username" id="username"
-           value="<?php echo isset($_POST['username']) ? htmlentities($_POST['username']) : ''; ?>"></p>
-        <p>Email: <input type="email" name="email" id="email"
-           value="<?php echo isset($_POST['email']) ? htmlentities($_POST['email']) : ''; ?>"></p>
-        <p>Password: <input type="password" name="password" id="password"></p>
+        <p>
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username"
+                   value="<?php echo isset($_POST['username']) ? htmlentities($_POST['username']) : ''; ?>">
+        </p>
+        <p>
+            <label for="email">Email</label>
+            <input type="email" name="email" id="email"
+                   value="<?php echo isset($_POST['email']) ? htmlentities($_POST['email']) : ''; ?>">
+        </p>
+        <p>
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password">
+        </p>
         <p><input type="submit" value="Register"></p>
         <input type="hidden" name="submitted" value="TRUE">
     </form>
-    <p>Already have an account? <a href="login.php">Login here</a></p>
 
-    <!-- Client-side (JavaScript) validation: brief requires both client + server -->
-    <script>
-    function validateForm() {
-        var u = document.getElementById("username").value.trim();
-        var e = document.getElementById("email").value.trim();
-        var p = document.getElementById("password").value.trim();
-        if (u === "" || e === "" || p === "") {
-            alert("All fields are required.");
-            return false;
-        }
-        var emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-        if (!emailPattern.test(e)) {
-            alert("Please enter a valid email.");
-            return false;
-        }
-        if (p.length < 6) {
-            alert("Password must be at least 6 characters.");
-            return false;
-        }
-        return true;
+    <p class="muted">Already have an account? <a href="<?php echo BASE_URL; ?>/auth/login.php">Login here</a></p>
+</div>
+
+<!-- Client-side (JavaScript) validation: brief requires both client + server -->
+<script>
+function validateForm() {
+    var u = document.getElementById("username").value.trim();
+    var e = document.getElementById("email").value.trim();
+    var p = document.getElementById("password").value.trim();
+    if (u === "" || e === "" || p === "") {
+        alert("All fields are required.");
+        return false;
     }
-    </script>
-</body>
-</html>
+    var emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    if (!emailPattern.test(e)) {
+        alert("Please enter a valid email.");
+        return false;
+    }
+    if (p.length < 6) {
+        alert("Password must be at least 6 characters.");
+        return false;
+    }
+    return true;
+}
+</script>
+
+<?php include_once(__DIR__ . "/../footer.php"); ?>

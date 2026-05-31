@@ -313,6 +313,34 @@ class Movie
         return $rows;
     }
 
+    // ---------- callMostPopularProc(): Report 1 via stored procedure ----------
+    public static function callMostPopularProc($dateFrom, $dateTo)
+    {
+        $dbc = getConnection();
+        $stmt = mysqli_prepare($dbc, "CALL dbProj_most_popular_in_range(?, ?)");
+        mysqli_stmt_bind_param($stmt, "ss", $dateFrom, $dateTo);
+        mysqli_stmt_execute($stmt);
+        $res = mysqli_stmt_get_result($stmt);
+        $rows = array();
+        while ($row = mysqli_fetch_assoc($res)) { $rows[] = $row; }
+        mysqli_stmt_close($stmt);
+        return $rows;
+    }
+
+    // ---------- callContentByCreatorProc(): Report 2 via stored procedure ----------
+    public static function callContentByCreatorProc($creatorId)
+    {
+        $dbc = getConnection();
+        $stmt = mysqli_prepare($dbc, "CALL dbProj_content_by_creator(?)");
+        mysqli_stmt_bind_param($stmt, "i", $creatorId);
+        mysqli_stmt_execute($stmt);
+        $res = mysqli_stmt_get_result($stmt);
+        $rows = array();
+        while ($row = mysqli_fetch_assoc($res)) { $rows[] = $row; }
+        mysqli_stmt_close($stmt);
+        return $rows;
+    }
+    
     // ---------- listByCreator(): creator panel (all statuses) ----------
     public static function listByCreator($creatorId)
     {

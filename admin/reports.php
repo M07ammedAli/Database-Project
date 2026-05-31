@@ -2,8 +2,8 @@
 // search/search.php — lives in the /search sub-folder, so step up one level.
 include_once(__DIR__ . "/../Movie.php");
 
-$dateFrom  = isset($_POST['from'])     ? trim($_POST['from'])     : '';
-$dateTo    = isset($_POST['to'])       ? trim($_POST['to'])       : '';
+$dateFrom  = (isset($_POST['from']) && trim($_POST['from']) !== '') ? trim($_POST['from']) : '2000-01-01';
+$dateTo    = (isset($_POST['to'])   && trim($_POST['to'])   !== '') ? trim($_POST['to'])   : '2999-12-31';
 $creatorId = isset($_POST['creator'])  ? (int)$_POST['creator']   : 0;
 
 // Only run a search once the user has actually submitted something.
@@ -14,11 +14,11 @@ if ($generateReport)
 {
     if($reportType === 'most_popular')
     {
-        $results = Movie::listMostPopular($dateFrom, $dateTo);
+        $results = Movie::callMostPopularProc($dateFrom, $dateTo);
     }
     elseif($reportType === 'user_content')
     {
-        $results = Movie::listByCreator($creatorId);
+        $results = Movie::callContentByCreatorProc($creatorId);
     }
 }
 

@@ -17,10 +17,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Match the constant in header.php (project root path on the server).
-if (!defined('BASE_URL')) {
-    define('BASE_URL', '/movie');   // <-- set to your project root path
-}
 
 // True if someone is logged in.
 function is_logged_in()

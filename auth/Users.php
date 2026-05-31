@@ -91,7 +91,7 @@ class Users
         mysqli_stmt_bind_param($stmt, "ssss", $this->username, $this->email, $this->password_hash, $this->role);
         $ok = mysqli_stmt_execute($stmt);
         if (!$ok) {
-            echo '<div class="alert alert-danger">Error: ' . mysqli_stmt_error($stmt) . '</div>';
+            error_log('registerUser failed: ' . mysqli_stmt_error($stmt));
             mysqli_stmt_close($stmt);
             return false;
         }

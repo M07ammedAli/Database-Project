@@ -174,3 +174,52 @@ tr:hover td { background: var(--surface-2); }
     .movie-card img { height: 220px; }
     h1 { font-size: 1.5rem; }
 }
+
+/* ---------- Admin pages (map legacy class names to theme) ---------- */
+.page-title { font-size: 1.9rem; margin-top: 0; }
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.table-container { overflow-x: auto; margin-top: 16px; }
+
+.styled-table { width: 100%; border-collapse: collapse; }
+.styled-table th, .styled-table td {
+    padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left;
+}
+.styled-table th {
+    color: var(--accent); font-size: .85rem;
+    text-transform: uppercase; letter-spacing: .03em;
+}
+.styled-table tr:hover td { background: var(--surface-2); }
+
+.styled-form {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    max-width: 520px;
+    box-shadow: var(--shadow);
+}
+.styled-form label { display: block; margin: 14px 0 4px; color: var(--muted); }
+
+.inline-form { display: inline-block; margin: 0 4px 4px 0; }
+
+.dropdown {
+    width: auto;
+    display: inline-block;
+    padding: 6px 10px;
+}
+
+.notice {
+    padding: 10px 14px; border-radius: 8px; margin: 0 0 16px;
+    background: rgba(62,196,109,.15); color: #b7f5cd; border: 1px solid var(--ok);
+}
+
+/* legacy .btn danger / secondary -> reuse theme */
+.btn.danger { background: var(--accent-2); color: #fff; }
+.btn.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
