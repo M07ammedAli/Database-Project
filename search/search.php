@@ -92,7 +92,7 @@ include_once(__DIR__ . "/../header.php");
                         <p class="title"><?php echo htmlentities($m['title']); ?></p>
                         <p class="meta">
                             <span class="badge"><?php echo htmlentities($m['category']); ?></span>
-                            &nbsp;⭐ <?php echo $m['avg_rating']; ?>
+                            &nbsp;<svg class="star-ico" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> <?php echo $m['avg_rating']; ?>
                             &nbsp;·&nbsp; <?php echo (int)$m['view_count']; ?> views
                         </p>
                         <p class="desc"><?php echo htmlentities($shortDesc); ?></p>

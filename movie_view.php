@@ -45,7 +45,7 @@ include_once(__DIR__ . "/header.php");
 <a href="<?php echo BASE_URL; ?>/index.php">&laquo; Back to movies</a>
 
 <h1><?php echo htmlentities($movie->getTitle()); ?></h1>
-<p class="meta">⭐ <?php echo $avg; ?> (<?php echo $count; ?> ratings) · <?php echo (int)$movie->getViewCount(); ?> views</p>
+<p class="meta"><svg class="star-ico" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> <?php echo $avg; ?> (<?php echo $count; ?> ratings) · <?php echo (int)$movie->getViewCount(); ?> views</p>
 
 <div style="display:flex; gap:24px; flex-wrap:wrap; margin-top:16px;">
     <img src="<?php echo BASE_URL; ?>/images/<?php echo htmlentities($poster); ?>"
@@ -56,7 +56,7 @@ include_once(__DIR__ . "/header.php");
             <p class="meta">Release date: <?php echo htmlentities($movie->getReleaseDate()); ?></p>
         <?php endif; ?>
         <?php if ($movie->getTrailerUrl()): ?>
-            <p><a class="btn" href="<?php echo htmlentities($movie->getTrailerUrl()); ?>" target="_blank" rel="noopener">▶ Watch Trailer</a></p>
+            <p><a class="btn" href="<?php echo htmlentities($movie->getTrailerUrl()); ?>" target="_blank" rel="noopener"><svg class="ico" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:-3px;"><polygon points="6 3 20 12 6 21 6 3"/></svg> Watch Trailer</a></p>
         <?php endif; ?>
     </div>
 </div>
@@ -141,7 +141,7 @@ var ajaxUrl = "<?php echo BASE_URL; ?>/ajax/comment_rating.php";
                     msgEl.textContent = 'Rated ' + v + '/5';
                     msgEl.style.color = 'var(--ok)';
                     document.querySelector('.meta').innerHTML =
-                        '&#11088; ' + parseFloat(d.avg).toFixed(1) + ' (' + d.count + ' ratings)' +
+                        '<svg class="star-ico" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> ' + parseFloat(d.avg).toFixed(1) + ' (' + d.count + ' ratings)' +
                         ' &middot; ' + document.querySelector('.meta').innerHTML.split('·')[1];
                     stars.forEach(function(ss, i){ ss.classList.toggle('on', i < d.myStars); });
                 } else {
