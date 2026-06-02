@@ -39,7 +39,9 @@ if (isset($_POST['submitted'])) {
         $error = "Title must be 150 characters or fewer.";
     } elseif ($trailerUrl !== "" && !filter_var($trailerUrl, FILTER_VALIDATE_URL)) {
         $error = "Trailer URL is not a valid URL.";
-    } elseif ($releaseDate !== "" && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $releaseDate)) {
+    } elseif ($releaseDate === "") {
+        $error = "Release date is required.";
+    } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $releaseDate)) {
         $error = "Release date must be in YYYY-MM-DD format.";
     } else {
         // ---- Poster upload (only if a file was actually chosen) ----
@@ -178,8 +180,8 @@ include_once(__DIR__ . "/../header.php");
     </p>
 
     <p>
-        <label for="release_date">Release date (optional)</label>
-        <input type="date" id="release_date" name="release_date"
+        <label for="release_date">Release date *</label>
+        <input type="date" id="release_date" name="release_date" required
                value="<?php echo htmlentities($releaseDate); ?>">
     </p>
 
@@ -193,9 +195,14 @@ function validateAddMovie() {
     var title = document.getElementById("title").value.trim();
     var desc  = document.getElementById("description").value.trim();
     var cat   = document.getElementById("category_id").value;
+    var date  = document.getElementById("release_date").value;
 
     if (title === "" || desc === "" || cat === "0") {
         alert("Please fill in title, description and choose a category.");
+        return false;
+    }
+    if (date === "") {
+        alert("Please choose a release date.");
         return false;
     }
     return true;

@@ -1,6 +1,7 @@
 <?php
 
 // Edit a DRAFT movie. Owner (or admin) only. Drafts only.
+// Now supports replacing or deleting the poster (revert to placeholder).
 include_once(__DIR__ . "/../auth_guard.php");
 require_role('creator');
 
@@ -42,6 +43,12 @@ if ($movie->getStatus() !== 'draft') {
 $error   = "";
 $success = "";
 
+// Poster storage rules — identical to creator/add_movie.php
+$imagesDir   = __DIR__ . "/../images";
+$maxBytes    = 2 * 1024 * 1024;                 // 2 MB
+$allowedExt  = array('jpg', 'jpeg', 'png');
+$allowedMime = array('image/jpeg', 'image/png');
+
 // Pre-fill from the loaded movie.
 $title       = $movie->getTitle();
 $description = $movie->getDescription();
@@ -56,6 +63,12 @@ if (isset($_POST['submitted'])) {
     $trailerUrl  = trim($_POST['trailer_url']);
     $releaseDate = trim($_POST['release_date']);
 
+    // Start from the existing poster; may be changed below.
+    $oldPoster    = $movie->getPosterImage();
+    $newPoster    = $oldPoster ? $oldPoster : 'placeholder.jpg';
+    $posterAction = isset($_POST['poster_action']) ? $_POST['poster_action'] : 'keep';
+
+    // ---- Text validation first (same rules as add_movie.php) ----
     if ($title === "" || $description === "" || $categoryId <= 0) {
         $error = "Title, description and category are required.";
     } elseif (mb_strlen($title) > 150) {
@@ -65,23 +78,90 @@ if (isset($_POST['submitted'])) {
     } elseif ($releaseDate !== "" && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $releaseDate)) {
         $error = "Release date must be in YYYY-MM-DD format.";
     } else {
-        $movie->setTitle($title);
-        $movie->setDescription($description);
-        $movie->setCategoryId($categoryId);
-        // poster_image left unchanged; trailer/date updated.
-        $movie->setTrailerUrl($trailerUrl !== "" ? $trailerUrl : null);
-        $movie->setReleaseDate($releaseDate !== "" ? $releaseDate : null);
-        $movie->setStatus('draft');   // stays a draft after editing
+        // ---- Poster: DELETE (revert to placeholder) ----
+        if ($posterAction === 'delete') {
+            if ($oldPoster && $oldPoster !== 'placeholder.jpg') {
+                $oldPath = $imagesDir . '/' . basename($oldPoster);
+                if (is_file($oldPath)) { @unlink($oldPath); }
+            }
+            $newPoster = 'placeholder.jpg';
+        }
 
-        if ($movie->update()) {
-            $success = "Changes saved.";
-        } else {
-            $error = "Could not save changes. Please try again.";
+        // ---- Poster: REPLACE (only if a file was actually chosen) ----
+        if ($error === "" && isset($_FILES['poster']) && $_FILES['poster']['error'] !== UPLOAD_ERR_NO_FILE) {
+            $f = $_FILES['poster'];
+
+            if ($f['error'] !== UPLOAD_ERR_OK) {
+                switch ($f['error']) {
+                    case UPLOAD_ERR_INI_SIZE:
+                    case UPLOAD_ERR_FORM_SIZE:
+                        $error = "The poster is too large to upload. Please choose an image under 2 MB.";
+                        break;
+                    case UPLOAD_ERR_PARTIAL:
+                        $error = "The poster was only partially uploaded. Please try again.";
+                        break;
+                    case UPLOAD_ERR_NO_TMP_DIR:
+                    case UPLOAD_ERR_CANT_WRITE:
+                        $error = "The server could not save the file. Please contact the administrator.";
+                        break;
+                    case UPLOAD_ERR_EXTENSION:
+                        $error = "The upload was blocked by the server. Please try a different image.";
+                        break;
+                    default:
+                        $error = "The poster could not be uploaded. Please try again.";
+                        break;
+                }
+            } elseif ($f['size'] > $maxBytes) {
+                $error = "Poster is too large. Maximum size is 2 MB.";
+            } else {
+                // Verify it's really an image (not a renamed file).
+                $info = @getimagesize($f['tmp_name']);
+                $mime = $info ? $info['mime'] : '';
+                $ext  = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
+
+                if (!in_array($mime, $allowedMime) || !in_array($ext, $allowedExt)) {
+                    $error = "Poster must be a JPG or PNG image.";
+                } else {
+                    $uploadName = 'poster_' . time() . '_' . mt_rand(1000, 9999) . '.' . $ext;
+                    $dest = $imagesDir . '/' . $uploadName;
+                    if (!move_uploaded_file($f['tmp_name'], $dest)) {
+                        $error = "Could not save the uploaded poster. Check folder permissions.";
+                    } else {
+                        // Success: remove the previous custom poster, then point to the new one.
+                        if ($oldPoster && $oldPoster !== 'placeholder.jpg') {
+                            $oldPath = $imagesDir . '/' . basename($oldPoster);
+                            if (is_file($oldPath)) { @unlink($oldPath); }
+                        }
+                        $newPoster = $uploadName;
+                    }
+                }
+            }
+        }
+
+        // ---- Save only if no poster problem ----
+        if ($error === "") {
+            $movie->setTitle($title);
+            $movie->setDescription($description);
+            $movie->setCategoryId($categoryId);
+            $movie->setPosterImage($newPoster);
+            $movie->setTrailerUrl($trailerUrl !== "" ? $trailerUrl : null);
+            $movie->setReleaseDate($releaseDate !== "" ? $releaseDate : null);
+            $movie->setStatus('draft');   // stays a draft after editing
+
+            if ($movie->update()) {
+                $success = "Changes saved.";
+            } else {
+                $error = "Could not save changes. Please try again.";
+            }
         }
     }
 }
 
 $categories = Movie::listCategories();
+
+// Current poster for display (reflects a just-saved change).
+$posterFile = $movie->getPosterImage() ? $movie->getPosterImage() : 'placeholder.jpg';
+$hasCustomPoster = ($posterFile !== 'placeholder.jpg');
 
 include_once(__DIR__ . "/../header.php");
 ?>
@@ -95,7 +175,7 @@ include_once(__DIR__ . "/../header.php");
     <div class="alert alert-success"><?php echo htmlentities($success); ?></div>
 <?php endif; ?>
 
-<form method="post" action="" onsubmit="return validateEditMovie();">
+<form method="post" action="" enctype="multipart/form-data" onsubmit="return validateEditMovie();">
     <input type="hidden" name="submitted" value="1">
 
     <p>
@@ -121,6 +201,38 @@ include_once(__DIR__ . "/../header.php");
             <?php endforeach; ?>
         </select>
     </p>
+
+    <p>
+        <label>Current poster</label>
+        <img id="currentPoster"
+             src="<?php echo BASE_URL; ?>/images/<?php echo htmlentities($posterFile); ?>"
+             alt="Current poster"
+             style="width:150px; border-radius:8px; display:block; margin-top:6px;">
+        <?php if (!$hasCustomPoster): ?>
+            <span class="muted">No custom poster set (showing placeholder).</span>
+        <?php endif; ?>
+    </p>
+
+    <p>
+        <label for="poster">Replace poster (JPG or PNG, max 2 MB)</label>
+        <input type="file" id="poster" name="poster" accept="image/jpeg,image/png"
+               onchange="previewPoster(event)">
+    </p>
+    <p>
+        <img id="posterPreview" src="" alt=""
+             style="display:none; width:150px; border-radius:8px; margin-top:6px;">
+    </p>
+
+    <?php if ($hasCustomPoster): ?>
+        <p>
+            <label style="display:inline-flex; align-items:center; gap:8px; font-weight:normal;">
+                <input type="checkbox" name="poster_action" value="delete" id="deletePoster"
+                       style="width:auto;"
+                       onchange="if(this.checked){document.getElementById('poster').value='';document.getElementById('posterPreview').style.display='none';}">
+                Delete current poster (revert to placeholder)
+            </label>
+        </p>
+    <?php endif; ?>
 
     <p>
         <label for="trailer_url">Trailer URL (optional)</label>
@@ -149,6 +261,20 @@ function validateEditMovie() {
         return false;
     }
     return true;
+}
+
+// Live thumbnail preview after choosing a file.
+function previewPoster(e) {
+    var file = e.target.files[0];
+    var img  = document.getElementById("posterPreview");
+    var del  = document.getElementById("deletePoster");
+    if (del) { del.checked = false; }   // choosing a file cancels a pending delete
+    if (file) {
+        img.src = URL.createObjectURL(file);
+        img.style.display = "block";
+    } else {
+        img.style.display = "none";
+    }
 }
 </script>
 

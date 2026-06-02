@@ -270,6 +270,7 @@ input[type=submit]:hover, button:hover, .btn:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-accent);
     text-decoration: none;
+    color: #1a1300;
 }
 input[type=submit]:active, button:active, .btn:active { transform: translateY(0); }
 
