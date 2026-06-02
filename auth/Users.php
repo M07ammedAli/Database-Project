@@ -23,13 +23,13 @@ class Users
     public function setRole($r)         { $this->role = $r; }
     public function setPassword($plain) { $this->password_hash = password_hash($plain, PASSWORD_DEFAULT); }
 
-    // ---------- XSS prevention helper (course: htmlentities / strip_tags) ----------
+   
     public function cleanXSS($data)
     {
         return htmlentities(strip_tags(trim($data)));
     }
 
-    // ---------- initWithUid(): fetch one user by PK, using prepared statement ----------
+    
     public function initWithUid($uid)
     {
         $dbc = getConnection();
@@ -50,7 +50,7 @@ class Users
         return false;
     }
 
-    // ---------- checkUser(): fetch by username for login, prepared statement ----------
+
     public function checkUser($username)
     {
         $dbc = getConnection();
@@ -70,7 +70,7 @@ class Users
         return false;
     }
 
-    // ---------- emailExists(): validation, prepared statement ----------
+
     public function emailExists($email)
     {
         $dbc = getConnection();
@@ -83,7 +83,6 @@ class Users
         return $exists;
     }
 
-    // ---------- registerUser(): INSERT with prepared statement ----------
     public function registerUser()
     {
         $dbc = getConnection();

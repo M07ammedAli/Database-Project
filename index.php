@@ -2,21 +2,20 @@
 include_once(__DIR__ . "/Movie.php");
 define('BASE_URL', '/~u202304108/MovieReview');
 
-// ---- Category chip filter (0 = All) ----
+
 $activeCat = isset($_GET['cat']) ? (int)$_GET['cat'] : 0;
 $categories = Movie::listCategories();
 
-// Build a quick lookup of category_id => name for matching the hero/labels.
+
 $catName = array();
 foreach ($categories as $c) { $catName[(int)$c['category_id']] = $c['name']; }
 
-// ---- Pagination (Non-functional: paginate when > 10 records) ----
+
 $perPage = 10;
 $page    = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) { $page = 1; }
 
-// Pull a generous batch, then filter by category in PHP (keeps Movie.php untouched).
-// listPublished returns newest-first with category name + avg rating already.
+
 $allPublished = Movie::listPublished(500, 0);
 
 // Apply category filter if one is chosen.
@@ -31,7 +30,7 @@ if ($activeCat > 0) {
     $filtered = $allPublished;
 }
 
-// ---- Hero: pick the most-viewed published movie (across all, not filtered) ----
+
 $hero = null;
 foreach ($allPublished as $m) {
     if ($hero === null || (int)$m['view_count'] > (int)$hero['view_count']) {
@@ -39,14 +38,14 @@ foreach ($allPublished as $m) {
     }
 }
 
-// ---- Pagination math on the filtered set ----
+
 $total      = count($filtered);
 $totalPages = max(1, (int)ceil($total / $perPage));
 if ($page > $totalPages) { $page = $totalPages; }
 $offset = ($page - 1) * $perPage;
 $movies = array_slice($filtered, $offset, $perPage);
 
-// Helper: build a page/cat URL keeping the active category.
+
 function pageUrl($p, $cat) {
     $q = 'page=' . (int)$p;
     if ($cat > 0) { $q .= '&cat=' . (int)$cat; }
@@ -83,7 +82,7 @@ include_once(__DIR__ . "/header.php");
 </section>
 <?php endif; ?>
 
-<!-- ===== Category chips (real categories, real filtering) ===== -->
+
 <div class="chips">
     <div class="chips-scroll">
         <a class="chip<?php echo $activeCat === 0 ? ' active' : ''; ?>"

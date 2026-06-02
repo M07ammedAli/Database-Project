@@ -1,6 +1,6 @@
 <?php
 
-// Deletes a DRAFT. Owner (or admin) only. Drafts only.
+
 include_once(__DIR__ . "/../auth_guard.php");
 require_role('creator');
 
@@ -18,7 +18,7 @@ if (!$id || !$movie->initWithId($id)) {
     exit();
 }
 
-// Ownership check: must own it, unless admin.
+
 $isOwner = ((int)$movie->getCreatorId() === (int)$_SESSION['uid']);
 $isAdmin = (current_role() === 'admin');
 if (!$isOwner && !$isAdmin) {
@@ -30,7 +30,7 @@ if (!$isOwner && !$isAdmin) {
     exit();
 }
 
-// Design rule: creators delete drafts only. Published stays (admin handles those).
+
 if ($movie->getStatus() !== 'draft') {
     include_once(__DIR__ . "/../header.php");
     echo "<h2>Cannot delete</h2><p>Published movies can only be removed by an administrator.</p>";

@@ -1,6 +1,6 @@
 <?php
 
-// Flips a DRAFT to published. Owner (or admin) only. Drafts only.
+
 
 include_once(__DIR__ . "/../auth_guard.php");
 require_role('creator');
@@ -19,7 +19,7 @@ if (!$id || !$movie->initWithId($id)) {
     exit();
 }
 
-// Ownership check: must own it, unless admin.
+
 $isOwner = ((int)$movie->getCreatorId() === (int)$_SESSION['uid']);
 $isAdmin = (current_role() === 'admin');
 if (!$isOwner && !$isAdmin) {
@@ -31,7 +31,7 @@ if (!$isOwner && !$isAdmin) {
     exit();
 }
 
-// Only drafts can be published.
+
 if ($movie->getStatus() !== 'draft') {
     include_once(__DIR__ . "/../header.php");
     echo "<h2>Already published</h2><p>This movie is already published.</p>";

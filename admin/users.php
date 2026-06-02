@@ -6,7 +6,7 @@ require_role('admin');
 $conn = getConnection();
 if (!$conn) { die("Database connection failed."); }
 
-// Helper: how many admins remain
+
 function adminCount($conn) {
     $r = $conn->query("SELECT COUNT(*) AS c FROM dbProj_users WHERE role='admin'");
     $row = $r->fetch_assoc();
@@ -18,7 +18,7 @@ if (isset($_POST['change_role'])) {
     $targetId = (int)$_POST['user_id'];
     $newRole  = $_POST['role'];
 
-    // Block demoting the last admin (including yourself).
+    
     $r = $conn->prepare("SELECT role FROM dbProj_users WHERE user_id=?");
     $r->bind_param("i", $targetId);
     $r->execute();

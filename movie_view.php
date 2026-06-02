@@ -13,14 +13,14 @@ if (!$id || !$movie->initWithId($id) || $movie->getStatus() !== 'published') {
     exit();
 }
 
-// Count this visit (feeds popularity search + admin reports).
+
 $movie->incrementViews();
 
 $avg    = $movie->getAverageRating();
 $count  = $movie->getRatingCount();
 $poster = $movie->getPosterImage() ? $movie->getPosterImage() : 'placeholder.jpg';
 
-// Fetch comments (newest first) with usernames.
+
 $dbc  = getConnection();
 $cid  = $movie->getMovieId();
 $cstmt = mysqli_prepare($dbc,

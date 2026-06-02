@@ -1,14 +1,4 @@
-/* =====================================================================
-   Movie Review System — stylesheet (v3, "cinematic refresh")
-   Drop-in replacement for css/style.css. Works with the EXISTING markup
-   and class names unchanged. Dark theme, single warm gold accent.
 
-   FONT: this file pulls one Google Font via @import (self-contained).
-   If you prefer a <link>, add this to the <head> of header.php instead
-   and the @import below is harmless to leave:
-   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-   ===================================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 :root {
@@ -73,9 +63,8 @@ a:hover { color: var(--accent-hi); text-decoration: none; }
 }
 ::-webkit-scrollbar-thumb:hover { background: #38404f; }
 
-/* =====================================================================
-   Floating header / nav — frosted, translucent, soft shadow
-   ===================================================================== */
+
+
 .site-header {
     position: sticky;
     top: 16px;

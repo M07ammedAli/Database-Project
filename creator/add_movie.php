@@ -1,6 +1,5 @@
 <?php
-// creator/add_movie.php
-// Add a new movie as a DRAFT, with validated poster upload.
+
 include_once(__DIR__ . "/../auth_guard.php");
 require_role('creator');
 
@@ -15,7 +14,7 @@ $categoryId  = 0;
 $trailerUrl  = "";
 $releaseDate = "";
 
-// Where posters are stored (server path) and the allowed rules.
+
 $imagesDir   = __DIR__ . "/../images";
 $maxBytes    = 2 * 1024 * 1024;                 // 2 MB
 $allowedExt  = array('jpg', 'jpeg', 'png');
@@ -44,7 +43,7 @@ if (isset($_POST['submitted'])) {
     } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $releaseDate)) {
         $error = "Release date must be in YYYY-MM-DD format.";
     } else {
-        // ---- Poster upload (only if a file was actually chosen) ----
+       
         $uploadOk = true;
 
         if (isset($_FILES['poster']) && $_FILES['poster']['error'] !== UPLOAD_ERR_NO_FILE) {
@@ -75,7 +74,7 @@ if (isset($_POST['submitted'])) {
                 $error = "Poster is too large. Maximum size is 2 MB.";
                 $uploadOk = false;
             } else {
-                // Verify it's really an image (not just a renamed file).
+               
                 $info = @getimagesize($f['tmp_name']);
                 $mime = $info ? $info['mime'] : '';
                 $ext  = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
@@ -84,7 +83,7 @@ if (isset($_POST['submitted'])) {
                     $error = "Poster must be a JPG or PNG image.";
                     $uploadOk = false;
                 } else {
-                    // Safe, unique filename — never trust the user's filename.
+                  
                     $posterFilename = 'poster_' . time() . '_' . mt_rand(1000, 9999) . '.' . $ext;
                     $dest = $imagesDir . '/' . $posterFilename;
 
@@ -97,7 +96,7 @@ if (isset($_POST['submitted'])) {
             }
         }
 
-        // ---- Save only if no upload problem ----
+
         if ($uploadOk && $error === "") {
             $movie->setTitle($title);
             $movie->setDescription($description);
@@ -208,7 +207,7 @@ function validateAddMovie() {
     return true;
 }
 
-// Live thumbnail preview after choosing a file (nice Test Plan screenshot).
+
 function previewPoster(e) {
     var file = e.target.files[0];
     var img  = document.getElementById("posterPreview");

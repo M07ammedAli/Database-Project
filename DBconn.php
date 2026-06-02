@@ -1,16 +1,5 @@
 <?php
-// =====================================================================
-// Database connection for the Movie Review System.
-// Deployed on the uni server (SFTP host 20.74.143.233).
-//
-// IMPORTANT - fill these in with YOUR phpMyAdmin credentials:
-//   $username = your MySQL user  (e.g. u123456789)
-//   $password = your phpMyAdmin password
-//   $database = the SHARED project database name
-//
-// Everything in the app calls getConnection() so the credentials
-// only ever live in this one file.
-// =====================================================================
+
 function getConnection()
 {
     $server   = "localhost";        // DB runs on the same server as PHP

@@ -21,7 +21,7 @@ if (isset($_POST['submitted'])) {
     }
 }
 
-// Shared header (starts the session, defines BASE_URL, prints nav + <main class="page">)
+
 include_once(__DIR__ . "/../header.php");
 ?>
 

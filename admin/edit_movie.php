@@ -1,12 +1,14 @@
 <?php
-// admin/edit_movie.php
+
+
 // Admin edit for any movie. Adds poster display + replace + delete,
 // reusing the same upload validation rules as the creator pages.
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 error_reporting(E_ALL);
-ini_set('display_errors', 0);   // keep off for submission; flip to 1 only while debugging
+ini_set('display_errors', 0);   
 
 require_once(__DIR__ . "/../DBconn.php");
 require_once(__DIR__ . "/../auth_guard.php");
@@ -23,9 +25,6 @@ $allowedMime = array('image/jpeg', 'image/png');
 
 $error = "";
 
-// ---------------------------------------------------------------------
-// Resolve the movie id (needed for both GET display and POST handling)
-// ---------------------------------------------------------------------
 $movie_id = 0;
 if (isset($_POST['movie_id'])) {
     $movie_id = (int)$_POST['movie_id'];
@@ -34,7 +33,6 @@ if (isset($_POST['movie_id'])) {
 }
 if ($movie_id <= 0) { die("Movie ID missing."); }
 
-// Helper: load current poster filename so we know what to replace/remove.
 function current_poster($conn, $movie_id) {
     $s = $conn->prepare("SELECT poster_image FROM dbProj_movies WHERE movie_id=?");
     $s->bind_param("i", $movie_id);
@@ -43,16 +41,14 @@ function current_poster($conn, $movie_id) {
     return $r ? $r['poster_image'] : null;
 }
 
-// ---------------------------------------------------------------------
-// Handle update
-// ---------------------------------------------------------------------
+
 if (isset($_POST['update_movie'])) {
 
     $oldPoster   = current_poster($conn, $movie_id);
     $newPoster   = $oldPoster ? $oldPoster : 'placeholder.jpg';
     $posterAction = isset($_POST['poster_action']) ? $_POST['poster_action'] : 'keep';
 
-    // ---- Poster: DELETE (revert to placeholder) ----
+
     if ($posterAction === 'delete') {
         // Physically remove the old custom file (never the shared placeholder).
         if ($oldPoster && $oldPoster !== 'placeholder.jpg') {
@@ -62,7 +58,7 @@ if (isset($_POST['update_movie'])) {
         $newPoster = 'placeholder.jpg';
     }
 
-    // ---- Poster: REPLACE (only if a file was actually chosen) ----
+
     if ($error === "" && isset($_FILES['poster']) && $_FILES['poster']['error'] !== UPLOAD_ERR_NO_FILE) {
         $f = $_FILES['poster'];
 
@@ -113,7 +109,6 @@ if (isset($_POST['update_movie'])) {
         }
     }
 
-    // ---- Save (only if no upload error) ----
     if ($error === "") {
         $stmt = $conn->prepare("UPDATE dbProj_movies
                                 SET title=?, category_id=?, release_date=?, status=?, poster_image=?
@@ -136,12 +131,10 @@ if (isset($_POST['update_movie'])) {
         header("Location: " . BASE_URL . "/admin/movies.php");
         exit;
     }
-    // If there was an error, fall through and redisplay the form below.
+    
 }
 
-// ---------------------------------------------------------------------
-// Fetch movie for display
-// ---------------------------------------------------------------------
+
 $stmt = $conn->prepare("SELECT movie_id, title, category_id, release_date, status, poster_image
                         FROM dbProj_movies WHERE movie_id=?");
 if (!$stmt) {

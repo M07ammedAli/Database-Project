@@ -1,14 +1,13 @@
 <?php
 
-// Lists the logged-in creator's own movies with management actions.
-// Guarded: creators and admins only.
+
 
 include_once(__DIR__ . "/../auth_guard.php");
 require_role('creator');   // viewer blocked; creator + admin allowed
 
 include_once(__DIR__ . "/../Movie.php");
 
-// The logged-in creator's own movies (all statuses).
+
 $myId   = $_SESSION['uid'];
 $movies = Movie::listByCreator($myId);
 

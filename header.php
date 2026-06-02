@@ -1,11 +1,5 @@
 <?php
-// =====================================================================
-// Shared page header + navigation. Include at the top of every page:
-//     include_once(__DIR__ . "/header.php");   (adjust path per folder)
-//
-// Navigation adapts to the logged-in role stored in $_SESSION.
-// Uses a BASE_URL constant so links work from any sub-folder.
-// =====================================================================
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }

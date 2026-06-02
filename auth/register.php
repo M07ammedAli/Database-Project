@@ -6,10 +6,10 @@ $success = "";
 
 if (isset($_POST['submitted'])) {
     $userObj = new Users();
-    // XSS clean on text inputs (course: htmlentities + strip_tags)
+
     $username = $userObj->cleanXSS($_POST['username']);
     $email    = $userObj->cleanXSS($_POST['email']);
-    $password = trim($_POST['password']);   // not cleaned: it gets hashed, never displayed
+    $password = trim($_POST['password']);   
 
     // Server-side validation
     if ($username == "" || $email == "" || $password == "") {
@@ -33,7 +33,7 @@ if (isset($_POST['submitted'])) {
     }
 }
 
-// Shared header (starts the session, defines BASE_URL, prints nav + <main class="page">)
+
 include_once(__DIR__ . "/../header.php");
 ?>
 
@@ -69,7 +69,6 @@ include_once(__DIR__ . "/../header.php");
     <p class="muted">Already have an account? <a href="<?php echo BASE_URL; ?>/auth/login.php">Login here</a></p>
 </div>
 
-<!-- Client-side (JavaScript) validation: brief requires both client + server -->
 <script>
 function validateForm() {
     var u = document.getElementById("username").value.trim();

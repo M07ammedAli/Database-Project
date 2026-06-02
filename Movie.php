@@ -1,27 +1,5 @@
 <?php
-// =====================================================================
-// Data object for dbProj_movies. Holds ONE movie row at a time
-// (same pattern as Users.php).
-//
-// Instance methods (work on one movie):
-//   initWithId($id)      - load a movie by primary key
-//   save()               - INSERT a new movie (uses the setters)
-//   update()             - UPDATE the loaded movie
-//   delete()             - DELETE the loaded movie
-//   publish()            - set status to 'published'
-//   incrementViews()     - +1 view_count (called on the detail page)
-//   getAverageRating()   - average stars for this movie
-//   getRatingCount()     - number of ratings
-//
-// List/search helpers (return arrays of rows, so they are static):
-//   Movie::countPublished()                  - total published (for pagination)
-//   Movie::listPublished($limit,$offset)     - home page listing (newest first)
-//   Movie::listByCreator($creatorId)         - creator panel
-//   Movie::listAll()                         - admin panel
-//   Movie::fullTextSearch($terms, ...)       - FULLTEXT search + filters
-//
-// Everything uses prepared statements (Unit 11 security).
-// =====================================================================
+
 include_once(__DIR__ . "/DBconn.php");
 define('BASE_URL', '/~u202304108/MovieReview');
 
@@ -39,7 +17,7 @@ class Movie
     private $view_count;
     private $created_at;
 
-    // ---------- Getters ----------
+   
     public function getMovieId()     { return $this->movie_id; }
     public function getTitle()       { return $this->title; }
     public function getDescription() { return $this->description; }
@@ -52,7 +30,7 @@ class Movie
     public function getViewCount()   { return $this->view_count; }
     public function getCreatedAt()   { return $this->created_at; }
 
-    // ---------- Setters ----------
+
     public function setMovieId($v)     { $this->movie_id = $v; }
     public function setTitle($v)       { $this->title = $v; }
     public function setDescription($v) { $this->description = $v; }
@@ -63,13 +41,13 @@ class Movie
     public function setReleaseDate($v) { $this->release_date = $v; }
     public function setStatus($v)      { $this->status = $v; }
 
-    // ---------- XSS helper (course: htmlentities / strip_tags) ----------
+ 
     public function cleanXSS($data)
     {
         return htmlentities(strip_tags(trim($data)));
     }
 
-    // ---------- initWithId(): load one movie by PK ----------
+  
     public function initWithId($id)
     {
         $dbc = getConnection();
@@ -100,7 +78,7 @@ class Movie
         return false;
     }
 
-    // ---------- save(): INSERT a new movie ----------
+
     public function save()
     {
         $dbc = getConnection();
@@ -121,7 +99,7 @@ class Movie
         return $ok;
     }
 
-    // ---------- update(): UPDATE the loaded movie ----------
+  
     public function update()
     {
         $dbc = getConnection();
@@ -138,7 +116,7 @@ class Movie
         return $ok;
     }
 
-    // ---------- delete(): remove the loaded movie ----------
+  
     public function delete()
     {
         $dbc = getConnection();
@@ -149,7 +127,7 @@ class Movie
         return $ok;
     }
 
-    // ---------- publish(): draft -> published ----------
+  
     public function publish()
     {
         $dbc = getConnection();
@@ -161,7 +139,7 @@ class Movie
         return $ok;
     }
 
-    // ---------- incrementViews(): +1 view_count ----------
+    
     public function incrementViews()
     {
         $dbc = getConnection();
@@ -172,7 +150,7 @@ class Movie
         mysqli_stmt_close($stmt);
     }
 
-    // ---------- getAverageRating(): avg stars for this movie ----------
+  
     public function getAverageRating()
     {
         $dbc = getConnection();
@@ -186,7 +164,7 @@ class Movie
         return $avg;
     }
 
-    // ---------- getRatingCount(): number of ratings ----------
+    //  getRatingCount(): number of ratings 
     public function getRatingCount()
     {
         $dbc = getConnection();
@@ -200,7 +178,7 @@ class Movie
         return $cnt;
     }
 
-    // ---------- getUserRating(): the logged-in user's stars for this movie (or null) ----------
+    //  getUserRating(): the logged-in user's stars for this movie (or null) 
     public function getUserRating($userId)
     {
         $dbc = getConnection();
@@ -214,7 +192,7 @@ class Movie
         return $found ? (int)$stars : null;
     }
 
-    // ---------- upsertRating(): INSERT or UPDATE a user's rating (UNIQUE on movie+user) ----------
+    //  upsertRating(): INSERT or UPDATE a user's rating (UNIQUE on movie+user) 
     public function upsertRating($userId, $stars)
     {
         $dbc = getConnection();
@@ -228,7 +206,7 @@ class Movie
         return $ok;
     }
 
-    // ---------- insertComment(): add a new comment ----------
+    //  insertComment(): add a new comment 
     public function insertComment($userId, $body)
     {
         $dbc = getConnection();
@@ -241,7 +219,7 @@ class Movie
         return $newId;
     }
 
-    // ---------- deleteComment(): remove a comment (static, admin use) ----------
+    //  deleteComment(): remove a comment (static, admin use) 
     public static function deleteComment($commentId)
     {
         $dbc = getConnection();
@@ -256,7 +234,7 @@ class Movie
     // List / search helpers (return arrays of associative rows)
     // =================================================================
 
-    // ---------- countPublished(): total published movies (for pagination) ----------
+    //  countPublished(): total published movies (for pagination) 
     public static function countPublished()
     {
         $dbc = getConnection();
@@ -265,7 +243,7 @@ class Movie
         return (int)$row['c'];
     }
 
-    // ---------- listPublished(): home page, newest first, with category + avg rating ----------
+    //  listPublished(): home page, newest first, with category + avg rating 
     public static function listPublished($limit = 10, $offset = 0)
     {
         $dbc = getConnection();
@@ -290,7 +268,7 @@ class Movie
         return $rows;
     }
     
-    // ---------- listMostPopular(): admin panel (list movies based on view count)
+    //  listMostPopular(): admin panel (list movies based on view count)
     public static function listMostPopular($dateFrom ='', $dateTo='')
     {
         $dbc = getConnection();
@@ -313,7 +291,7 @@ class Movie
         return $rows;
     }
 
-    // ---------- callMostPopularProc(): Report 1 via stored procedure ----------
+    //  callMostPopularProc(): Report 1 via stored procedure 
     public static function callMostPopularProc($dateFrom, $dateTo)
     {
         $dbc = getConnection();
@@ -327,7 +305,7 @@ class Movie
         return $rows;
     }
 
-    // ---------- callContentByCreatorProc(): Report 2 via stored procedure ----------
+    //  callContentByCreatorProc(): Report 2 via stored procedure 
     public static function callContentByCreatorProc($creatorId)
     {
         $dbc = getConnection();
@@ -341,7 +319,7 @@ class Movie
         return $rows;
     }
     
-    // ---------- listByCreator(): creator panel (all statuses) ----------
+
     public static function listByCreator($creatorId)
     {
         $dbc = getConnection();
@@ -359,7 +337,7 @@ class Movie
         return $rows;
     }
 
-    // ---------- listAll(): admin panel (every movie) ----------
+   
     public static function listAll()
     {
         $dbc = getConnection();
@@ -374,12 +352,7 @@ class Movie
         return $rows;
     }
 
-    // ---------- fullTextSearch(): FULLTEXT on title+description, plus filters ----------
-    // $terms     : search string (FULLTEXT); empty string = no text filter
-    // $creatorId : filter by creator (0 = ignore)
-    // $dateFrom  : 'YYYY-MM-DD' or '' to ignore
-    // $dateTo    : 'YYYY-MM-DD' or '' to ignore
-    // $sort      : 'newest' | 'popular' | 'relevance'
+
     public static function fullTextSearch($terms, $creatorId = 0, $dateFrom = '', $dateTo = '', $sort = 'relevance')
     {
         $dbc = getConnection();
@@ -442,7 +415,7 @@ class Movie
         return $rows;
     }
 
-    // ---------- listCreators(): users who can author movies (for search dropdown) ----------
+   
     public static function listCreators()
     {
         $dbc = getConnection();
@@ -454,7 +427,7 @@ class Movie
         return $rows;
     }
     
-     // all categories (for add/edit dropdown)
+
     public static function listCategories()
     {
         $dbc = getConnection();

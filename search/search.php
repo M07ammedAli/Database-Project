@@ -1,15 +1,15 @@
 <?php
-// search/search.php — lives in the /search sub-folder, so step up one level.
+
 include_once(__DIR__ . "/../Movie.php");
 
-// Read filters from the query string (GET so searches are shareable/bookmarkable).
+
 $terms     = isset($_GET['q'])        ? trim($_GET['q'])        : '';
 $creatorId = isset($_GET['creator'])  ? (int)$_GET['creator']   : 0;
 $dateFrom  = isset($_GET['from'])     ? trim($_GET['from'])     : '';
 $dateTo    = isset($_GET['to'])       ? trim($_GET['to'])       : '';
 $sort      = isset($_GET['sort'])     ? trim($_GET['sort'])     : 'relevance';
 
-// Only run a search once the user has actually submitted something.
+
 $searched = isset($_GET['submitted']);
 $results  = array();
 if ($searched) {

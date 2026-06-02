@@ -1,7 +1,6 @@
 <?php
 
-// Edit a DRAFT movie. Owner (or admin) only. Drafts only.
-// Now supports replacing or deleting the poster (revert to placeholder).
+
 include_once(__DIR__ . "/../auth_guard.php");
 require_role('creator');
 
@@ -19,7 +18,7 @@ if (!$id || !$movie->initWithId($id)) {
     exit();
 }
 
-// Ownership check: must own it, unless admin.
+
 $isOwner = ((int)$movie->getCreatorId() === (int)$_SESSION['uid']);
 $isAdmin = (current_role() === 'admin');
 if (!$isOwner && !$isAdmin) {
@@ -31,7 +30,7 @@ if (!$isOwner && !$isAdmin) {
     exit();
 }
 
-// Design rule: only drafts are editable. Published movies are locked.
+
 if ($movie->getStatus() !== 'draft') {
     include_once(__DIR__ . "/../header.php");
     echo "<h2>Locked</h2><p>Published movies cannot be edited here.</p>";
@@ -43,13 +42,13 @@ if ($movie->getStatus() !== 'draft') {
 $error   = "";
 $success = "";
 
-// Poster storage rules — identical to creator/add_movie.php
+
 $imagesDir   = __DIR__ . "/../images";
 $maxBytes    = 2 * 1024 * 1024;                 // 2 MB
 $allowedExt  = array('jpg', 'jpeg', 'png');
 $allowedMime = array('image/jpeg', 'image/png');
 
-// Pre-fill from the loaded movie.
+
 $title       = $movie->getTitle();
 $description = $movie->getDescription();
 $categoryId  = (int)$movie->getCategoryId();
@@ -63,12 +62,12 @@ if (isset($_POST['submitted'])) {
     $trailerUrl  = trim($_POST['trailer_url']);
     $releaseDate = trim($_POST['release_date']);
 
-    // Start from the existing poster; may be changed below.
+
     $oldPoster    = $movie->getPosterImage();
     $newPoster    = $oldPoster ? $oldPoster : 'placeholder.jpg';
     $posterAction = isset($_POST['poster_action']) ? $_POST['poster_action'] : 'keep';
 
-    // ---- Text validation first (same rules as add_movie.php) ----
+
     if ($title === "" || $description === "" || $categoryId <= 0) {
         $error = "Title, description and category are required.";
     } elseif (mb_strlen($title) > 150) {
@@ -78,7 +77,7 @@ if (isset($_POST['submitted'])) {
     } elseif ($releaseDate !== "" && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $releaseDate)) {
         $error = "Release date must be in YYYY-MM-DD format.";
     } else {
-        // ---- Poster: DELETE (revert to placeholder) ----
+        
         if ($posterAction === 'delete') {
             if ($oldPoster && $oldPoster !== 'placeholder.jpg') {
                 $oldPath = $imagesDir . '/' . basename($oldPoster);
@@ -87,7 +86,7 @@ if (isset($_POST['submitted'])) {
             $newPoster = 'placeholder.jpg';
         }
 
-        // ---- Poster: REPLACE (only if a file was actually chosen) ----
+   
         if ($error === "" && isset($_FILES['poster']) && $_FILES['poster']['error'] !== UPLOAD_ERR_NO_FILE) {
             $f = $_FILES['poster'];
 
@@ -114,7 +113,7 @@ if (isset($_POST['submitted'])) {
             } elseif ($f['size'] > $maxBytes) {
                 $error = "Poster is too large. Maximum size is 2 MB.";
             } else {
-                // Verify it's really an image (not a renamed file).
+       
                 $info = @getimagesize($f['tmp_name']);
                 $mime = $info ? $info['mime'] : '';
                 $ext  = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
@@ -127,7 +126,7 @@ if (isset($_POST['submitted'])) {
                     if (!move_uploaded_file($f['tmp_name'], $dest)) {
                         $error = "Could not save the uploaded poster. Check folder permissions.";
                     } else {
-                        // Success: remove the previous custom poster, then point to the new one.
+                      
                         if ($oldPoster && $oldPoster !== 'placeholder.jpg') {
                             $oldPath = $imagesDir . '/' . basename($oldPoster);
                             if (is_file($oldPath)) { @unlink($oldPath); }
@@ -138,7 +137,7 @@ if (isset($_POST['submitted'])) {
             }
         }
 
-        // ---- Save only if no poster problem ----
+        
         if ($error === "") {
             $movie->setTitle($title);
             $movie->setDescription($description);
@@ -159,7 +158,7 @@ if (isset($_POST['submitted'])) {
 
 $categories = Movie::listCategories();
 
-// Current poster for display (reflects a just-saved change).
+
 $posterFile = $movie->getPosterImage() ? $movie->getPosterImage() : 'placeholder.jpg';
 $hasCustomPoster = ($posterFile !== 'placeholder.jpg');
 
@@ -263,7 +262,7 @@ function validateEditMovie() {
     return true;
 }
 
-// Live thumbnail preview after choosing a file.
+
 function previewPoster(e) {
     var file = e.target.files[0];
     var img  = document.getElementById("posterPreview");
